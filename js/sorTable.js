@@ -49,14 +49,14 @@ var sorTablejs = function(setting) {
      * setEventToAllObject
      * 引数のエレメント全てに特定のイベントで発火する関数を定義する
      *
-     * @param {HTMLElement} elem - 対象のエレメントの配列
-     * @param {String} e - 対象のイベント
-     * @param {Function} f - 発火する関数
+     * @param {HTMLElement} elements - 対象のエレメントの配列
+     * @param {String} event - 対象のイベント
+     * @param {Function} func - 発火する関数
      * @return なし
      */
-    function setEventToAllObject(elem, e, f) {
-        [...elem].map((v)=> {
-            v.addEventListener(e, f, false);
+    function setEventToAllObject(elements, event, func) {
+        Object.keys(elements).forEach(function(key) {
+            elements[key].addEventListener(event, func, false);
         });
     }
 
@@ -70,10 +70,14 @@ var sorTablejs = function(setting) {
     function getTableElement(elem) {
         //操作対象のテーブルを特定する
         //TABLEタグが見つかるまでelemの親要素をたどる
-        var f = th => {
-            return th.tagName.toUpperCase() === "TABLE"? th : f(th.parentNode);
+        var closest = function(th) {
+            var parent = th.parentNode;
+            if (parent.tagName.toUpperCase() === "TABLE") {
+                return parent;
+            }
+            return closest(parent);
         };
-        return f(elem.parentNode);
+        return closest(elem);
     }
 
     /**
@@ -83,7 +87,7 @@ var sorTablejs = function(setting) {
      * @param {HTMLElement} tableElem - テーブル
      * @return {Array} data - tableElemのデータ配列
      */
-    function getTableData(tableElem) {
+    function getTableData(tableElem, tableHeader) {
         var data = [];
         //1行目を飛ばす
         for (var i = 1, l = tableElem.length; i < l; i++) {
@@ -92,6 +96,8 @@ var sorTablejs = function(setting) {
                     data[i] = {};
                     data[i]["key"] = i; //ソート用のキー設定
                 }
+                ( tableHeader[j].classList.contains("sortable-numeric")) ? 
+                data[i][j] = parseInt(tableElem[i].cells[j].innerText) : 
                 data[i][j] = tableElem[i].cells[j].innerText;
             }
         }
@@ -110,15 +116,15 @@ var sorTablejs = function(setting) {
     function sortTableData(tableData, colNo, sortOrder) {
         //クリックした列番号取得
         //ソート処理
-        return tableData.sort((a, b) => {
-            if (a[colNo] < b[colNo]) {
-                return -1 * sortOrder;
-            }            
-            if (a[colNo] > b[colNo]) {
-                return sortOrder;
-            }
-            return 0;
-        });
+        tableData.sort(function(a, b) {
+                    if (a[colNo] < b[colNo]) {
+                        return -1 * sortOrder;
+                    } else if (a[colNo] > b[colNo]) {
+                        return sortOrder;
+                    }
+                    return 0;
+                });
+        return tableData;
     }
 
     /**
@@ -187,7 +193,8 @@ var sorTablejs = function(setting) {
         }
 
         //テーブルデータ取得
-        var tableData = getTableData(table.querySelectorAll("tr"));
+        var header = table.querySelector("thead tr").querySelectorAll("th")
+        var tableData = getTableData(table.querySelectorAll("tr"), header);
 
         //ソート順取得
         //昇順クラスを持っていなければ昇順・それ以外なら降順
@@ -206,10 +213,10 @@ var sorTablejs = function(setting) {
 
     //ロード時にソート用イベントをバインドする
     window.addEventListener("load", function() {
-        var elem = document.querySelector(config.targetTable).querySelectorAll(config.selectorHeaders);
+        var elements = document.querySelector(config.targetTable).querySelectorAll(config.selectorHeaders);
         //カーソル表示用CSS追加
         document.querySelector(config.targetTable).classList.add(config.cssBg);
-        setEventToAllObject(elem, "click", function(e) {sortEvent(e.target); });
+        setEventToAllObject(elements, "click", function(e) { sortEvent(e.target); });
     }, false);
 
     return this;

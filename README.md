@@ -28,6 +28,10 @@ English description
 	```
 3. ヘッダをクリックするとソートされます
 
+4. use `sortable-numeric` to enable numeric sort
+	``` html
+	<th class="sortable-numeric">Number</th>
+	```
 
 *	同梱の`sorTable.css`及び`img`ディレクトリを配置すると、  
 	ソート状態を表示することができます。

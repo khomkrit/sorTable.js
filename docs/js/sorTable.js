@@ -87,7 +87,7 @@ var sorTablejs = function(setting) {
      * @param {HTMLElement} tableElem - テーブル
      * @return {Array} data - tableElemのデータ配列
      */
-    function getTableData(tableElem) {
+    function getTableData(tableElem, tableHeader) {
         var data = [];
         //1行目を飛ばす
         for (var i = 1, l = tableElem.length; i < l; i++) {
@@ -96,6 +96,8 @@ var sorTablejs = function(setting) {
                     data[i] = {};
                     data[i]["key"] = i; //ソート用のキー設定
                 }
+                ( tableHeader[j].classList.contains("sortable-numeric")) ? 
+                data[i][j] = parseInt(tableElem[i].cells[j].innerText) : 
                 data[i][j] = tableElem[i].cells[j].innerText;
             }
         }
@@ -191,7 +193,8 @@ var sorTablejs = function(setting) {
         }
 
         //テーブルデータ取得
-        var tableData = getTableData(table.querySelectorAll("tr"));
+        var header = table.querySelector("thead tr").querySelectorAll("th")
+        var tableData = getTableData(table.querySelectorAll("tr"), header);
 
         //ソート順取得
         //昇順クラスを持っていなければ昇順・それ以外なら降順
@@ -210,10 +213,10 @@ var sorTablejs = function(setting) {
 
     //ロード時にソート用イベントをバインドする
     window.addEventListener("load", function() {
-        var elem = document.querySelector(config.targetTable).querySelectorAll(config.selectorHeaders);
+        var elements = document.querySelector(config.targetTable).querySelectorAll(config.selectorHeaders);
         //カーソル表示用CSS追加
         document.querySelector(config.targetTable).classList.add(config.cssBg);
-        setEventToAllObject(elem, "click", function(e) {sortEvent(e.target); });
+        setEventToAllObject(elements, "click", function(e) { sortEvent(e.target); });
     }, false);
 
     return this;
